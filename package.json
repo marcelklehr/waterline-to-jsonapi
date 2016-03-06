@@ -1,0 +1,23 @@
+{
+  "name": "waterline-to-jsonapi",
+  "version": "1.0.0",
+  "description": "Convert waterline models and query results to valid jsonapi payloads",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marcelklehr/waterline-to-jsonapi.git"
+  },
+  "keywords": [
+    "waterline",
+    "jsonapi"
+  ],
+  "author": "Marcel Klehr <mklehr@gmx.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/marcelklehr/waterline-to-jsonapi/issues"
+  },
+  "homepage": "https://github.com/marcelklehr/waterline-to-jsonapi#readme"
+}
