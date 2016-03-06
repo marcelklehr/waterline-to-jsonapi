@@ -37,6 +37,12 @@ this.body = jsonapi.relation(owner, 'owner', 'pets')
 ### jsonapi.errors(er:Error|Array<Error>)
 Turns your errors into a valid jsonapi response. You can either pass a single error or an array of errors.
 
+### jsonapi.addlinks(payload:Object, links:Object)
+Add links to your jsonapi response.
+
+### jsonapi.addMeta(payload:Object, meta.Object)
+Add meta info to your jsonapi response.
+
 ## Legal
 (c) 2016 by Marcel Klehr
 
