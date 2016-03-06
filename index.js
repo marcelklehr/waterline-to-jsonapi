@@ -74,6 +74,28 @@ module.exports = function(waterline) {
   /**
    * @public
    */
+  jsonapi.addLinks = function(payload, links) {
+    if(!payload.links) payload.links = {}
+    for(var link in links) {
+      payload.links[link] = links[link]
+    }
+    return payload
+  }
+
+  /**
+   * @public
+   */
+  jsonapi.addMeta = function((payload, meta) {
+    if(!payload.meta) payload.meta = {}
+    for(var prop in meta) {
+      payload.meta[prop] = meta[prop]
+    }
+    return payload
+  }
+
+  /**
+   * @public
+   */
   jsonapi.relation = function(item, baseCollection, attr, related, relatedCollection, included) {
     if(!baseCollection.identity) baseCollection = waterline.collections[baseCollection]
     if(!relatedCollection.identity) relatedCollection = waterline.collections[relatedCollection]
