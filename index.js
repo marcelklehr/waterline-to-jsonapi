@@ -96,13 +96,14 @@ module.exports = function(waterline) {
   /**
    * @public
    */
-  jsonapi.relation = function(item, baseCollection, attr, related, relatedCollection, included) {
+  jsonapi.relation = function(item, baseCollection, attr, included) {
     if(!baseCollection.identity) baseCollection = waterline.collections[baseCollection]
-    if(!relatedCollection.identity) relatedCollection = waterline.collections[relatedCollection]
     if(!included) included = {}
+    var related = item[attr]
+    var relatedCollection = waterline.collections[baseCollection.attributes[attr].model || baseCollection.attributes[attr].collection]
     if(baseCollection.attributes[attr].model) {
       return jsonapi.relationOne(item, baseCollection, attr, related, relatedCollection, included)
-    }else if (baseCollection.attributes[attr].model) {
+    }else if (baseCollection.attributes[attr].collection) {
       return jsonapi.relationMany(item, baseCollection, attr, related, relatedCollection, included)
     }
   }
