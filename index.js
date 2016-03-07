@@ -26,7 +26,7 @@ module.exports = function(waterline) {
       data: jsonapi.itemFull(item, collection, included)
     }
     if(Object.keys(included).length) {
-      data.included = included
+      data.included = jsonapi.included(included)
     }
     return data
   }
@@ -106,10 +106,14 @@ module.exports = function(waterline) {
     if(!included) included = {}
     var related = item[attr]
     var relatedCollection = waterline.collections[baseCollection.attributes[attr].model || baseCollection.attributes[attr].collection]
+    var data
     if(baseCollection.attributes[attr].model) {
-      return jsonapi.relationOne(item, baseCollection, attr, related, relatedCollection, included)
+      data = jsonapi.relationOne(item, baseCollection, attr, related, relatedCollection, included)
     }else if (baseCollection.attributes[attr].collection) {
-      return jsonapi.relationMany(item, baseCollection, attr, related, relatedCollection, included)
+      data = jsonapi.relationMany(item, baseCollection, attr, related, relatedCollection, included)
+    }
+    if(Object.keys(included).length) {
+      data.included = jsonapi.included(included)
     }
   }
 
@@ -138,7 +142,7 @@ module.exports = function(waterline) {
 	// .data only contains shallow objects
 	var data = jsonapi.item(item, relatedCollection)
 	// If the relation has been populated, the objects are available in .included
-	if('object' === typeof item[attribute]) {
+	if('object' === typeof item) {
 	  if(!included[relatedCollection.identity]) included[relatedCollection.identity] = {}
 	  included[relatedCollection.identity][item.id] = jsonapi.itemFull(item, relatedCollection, included)
 	}
@@ -156,16 +160,18 @@ module.exports = function(waterline) {
   jsonapi.collection = function(list, collection, included) {
     if(!included) included = {}
     if(!collection.identity) collection = waterline.collections[collection]
-    return {
+    var data = {
       data: list.map((item)=>jsonapi.itemFull(item, collection, included))
+    }
+    if(Object.keys(included).length) {
+      data.included = jsonapi.included(included)
     }
   }
 
   jsonapi.included = function(included) {
     var rendered = []
     for(var identity in included) {
-      var collection = included[identity].__collection
-      delete included[identity].__collection
+      var collection = waterline.collections[identity]
       rendered = rendered.concat(
 	Object.keys(included[identity])
 	.map((id) => jsonapi.itemFull(included[identity][id], collection))
