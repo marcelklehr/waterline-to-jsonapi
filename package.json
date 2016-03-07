@@ -1,6 +1,6 @@
 {
   "name": "waterline-to-jsonapi",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Convert waterline models and query results to valid jsonapi payloads",
   "main": "index.js",
   "scripts": {
