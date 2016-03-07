@@ -52,6 +52,7 @@ module.exports = function(waterline) {
       }else
       // to-many
       if(collection.attributes[attr].collection) {
+        if(!item[attr].length) continue
 	var relatedCollection = waterline.collections[collection.attributes[attr].collection]
 	relationships[attr] = jsonapi.relationMany(item, collection, attr, item[attr], relatedCollection, included)
       }else
