@@ -118,6 +118,7 @@ module.exports = function(waterline) {
     if(Object.keys(included).length) {
       data.included = jsonapi.included(included)
     }
+    return data
   }
 
   jsonapi.relationOne = function(item, baseCollection, attribute, other, relatedCollection, included) {  
@@ -169,6 +170,7 @@ module.exports = function(waterline) {
     if(Object.keys(included).length) {
       data.included = jsonapi.included(included)
     }
+    return data
   }
 
   jsonapi.included = function(included) {
