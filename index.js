@@ -48,7 +48,9 @@ module.exports = function(waterline) {
       // to-one
       if(collection.attributes[attr].model) {
 	var relatedCollection = waterline.collections[collection.attributes[attr].model]
-	relationships[attr] = jsonapi.relationOne(item, collection, attr, item[attr], relatedCollection, included)
+	relationships[attr] = item[attr]?
+           jsonapi.relationOne(item, collection, attr, item[attr], relatedCollection, included)
+         : null
       }else
       // to-many
       if(collection.attributes[attr].collection) {
@@ -175,7 +177,7 @@ module.exports = function(waterline) {
       var collection = waterline.collections[identity]
       rendered = rendered.concat(
 	Object.keys(included[identity])
-	.map((id) => jsonapi.itemFull(included[identity][id], collection))
+	.map((id) => included[identity][id])
       )
     }
     return rendered
