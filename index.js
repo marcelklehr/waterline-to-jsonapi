@@ -1,11 +1,11 @@
-
+var uuid
 module.exports = function(waterline) {
   var jsonapi = {}
 
   jsonapi.error = function(error) {
-    if(errors instanceof Error) {
+    if(error instanceof Error) {
       return {
-	id: uuid.v4()
+	id: uuid? uuid.v4() : undefined
       , detail: error.message
       }
     }
@@ -85,7 +85,7 @@ module.exports = function(waterline) {
   /**
    * @public
    */
-  jsonapi.addMeta = function((payload, meta) {
+  jsonapi.addMeta = function(payload, meta) {
     if(!payload.meta) payload.meta = {}
     for(var prop in meta) {
       payload.meta[prop] = meta[prop]
@@ -114,9 +114,9 @@ module.exports = function(waterline) {
     }
    
     // If the relation has been populated, the objects are available in .included
-    if('object' === typeof item) {
+    if('object' === typeof item[attribute]) {
       if(!included[relatedCollection.identity]) included[relatedCollection.identity] = {}
-      included[relatedCollection.identity][other.id] = jsonapi.itemFull(other, relatedCollection)
+      included[relatedCollection.identity][other.id] = jsonapi.itemFull(other, relatedCollection, included)
     }
    
     if(baseCollection.attributes[attribute].jsonapi_linkSelf) {
@@ -129,13 +129,13 @@ module.exports = function(waterline) {
 
   jsonapi.relationMany = function(item, baseCollection, attribute, list, relatedCollection, included) {
     var data = {
-      data: item[attr].map((item) => {
+      data: item[attribute].map((item) => {
 	// .data only contains shallow objects
 	var data = jsonapi.item(item, relatedCollection)
 	// If the relation has been populated, the objects are available in .included
-	if('object' === typeof item) {
+	if('object' === typeof item[attribute]) {
 	  if(!included[relatedCollection.identity]) included[relatedCollection.identity] = {}
-	  included[relatedCollection.identity][item.id] = jsonapi.itemFull(item, relatedCollection)
+	  included[relatedCollection.identity][item.id] = jsonapi.itemFull(item, relatedCollection, included)
 	}
 	return data
       })
@@ -163,7 +163,7 @@ module.exports = function(waterline) {
       delete included[identity].__collection
       rendered = rendered.concat(
 	Object.keys(included[identity])
-	.map((id) => jsonapi.itemFull(included[identity][id], collection)
+	.map((id) => jsonapi.itemFull(included[identity][id], collection))
       )
     }
     return rendered
