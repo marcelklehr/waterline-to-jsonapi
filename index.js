@@ -34,7 +34,7 @@ module.exports = function(waterline) {
   jsonapi.item = function(item, collection) {
     return {
       type: collection.identity || collection
-    , id: item.id || item
+    , id: String(item.id || item)
     }
   }
 
@@ -68,6 +68,11 @@ module.exports = function(waterline) {
 	self: collection.jsonapi_linkSelf(item)
       }
     }
+
+    // id must be string + not part of attrs
+    delete data.attributes.id
+    data.id = String(data.id)
+
     return data
   }
 
