@@ -20,10 +20,11 @@ module.exports = function(waterline) {
   /**
    * @public
    */
-  jsonapi.single = function(item, collection) {
+  jsonapi.single = function(item, collection, options) {
     var included = {}
+    options = prepareOptions(options)
     var data = {
-      data: jsonapi.itemFull(item, collection, included)
+      data: jsonapi.itemFull(item, collection, included, options)
     }
     if(Object.keys(included).length) {
       data.included = jsonapi.included(included)
@@ -38,25 +39,30 @@ module.exports = function(waterline) {
     }
   }
 
-  jsonapi.itemFull = function(item, collection, included) {
+  jsonapi.itemFull = function(item, collection, included, options) {
     if(!collection.identity) collection = waterline.collections[collection]
 
     var data = jsonapi.item(item, collection)
     data.attributes = {}
     var relationships = {}
     for(var attr in collection.attributes) {
+      // Filter fields
+      if(options.fields && options.fields[collection.identity]
+         && !~options.fields[collection.identity].indexOf(attr)) {
+        continue
+      }
       // to-one
       if(collection.attributes[attr].model) {
 	var relatedCollection = waterline.collections[collection.attributes[attr].model]
 	relationships[attr] = item[attr]?
-           jsonapi.relationOne(item, collection, attr, item[attr], relatedCollection, included)
+           jsonapi.relationOne(item, collection, attr, item[attr], relatedCollection, included, options)
          : null
       }else
       // to-many
       if(collection.attributes[attr].collection) {
         if(!item[attr].length) continue
 	var relatedCollection = waterline.collections[collection.attributes[attr].collection]
-	relationships[attr] = jsonapi.relationMany(item, collection, attr, item[attr], relatedCollection, included)
+	relationships[attr] = jsonapi.relationMany(item, collection, attr, item[attr], relatedCollection, included, options)
       }else
       // normal attribute
       {
@@ -104,16 +110,17 @@ module.exports = function(waterline) {
   /**
    * @public
    */
-  jsonapi.relation = function(item, baseCollection, attr, included) {
+  jsonapi.relation = function(item, baseCollection, attr, options) {
     if(!baseCollection.identity) baseCollection = waterline.collections[baseCollection]
-    if(!included) included = {}
+    options = prepareOptions(options)
+    var included = {}
     var related = item[attr]
     var relatedCollection = waterline.collections[baseCollection.attributes[attr].model || baseCollection.attributes[attr].collection]
     var data
     if(baseCollection.attributes[attr].model) {
-      data = jsonapi.relationOne(item, baseCollection, attr, related, relatedCollection, included)
+      data = jsonapi.relationOne(item, baseCollection, attr, related, relatedCollection, included, options)
     }else if (baseCollection.attributes[attr].collection) {
-      data = jsonapi.relationMany(item, baseCollection, attr, related, relatedCollection, included)
+      data = jsonapi.relationMany(item, baseCollection, attr, related, relatedCollection, included, options)
     }
     if(Object.keys(included).length) {
       data.included = jsonapi.included(included)
@@ -121,7 +128,7 @@ module.exports = function(waterline) {
     return data
   }
 
-  jsonapi.relationOne = function(item, baseCollection, attribute, other, relatedCollection, included) {  
+  jsonapi.relationOne = function(item, baseCollection, attribute, other, relatedCollection, included, options) {  
     var data = {
       data: jsonapi.item(other, relatedCollection)
     }
@@ -129,7 +136,7 @@ module.exports = function(waterline) {
     // If the relation has been populated, the objects are available in .included
     if('object' === typeof item[attribute]) {
       if(!included[relatedCollection.identity]) included[relatedCollection.identity] = {}
-      included[relatedCollection.identity][other.id] = jsonapi.itemFull(other, relatedCollection, included)
+      included[relatedCollection.identity][other.id] = jsonapi.itemFull(other, relatedCollection, included, options)
     }
    
     if(baseCollection.attributes[attribute].jsonapi_linkSelf) {
@@ -140,7 +147,7 @@ module.exports = function(waterline) {
     return data
   }
 
-  jsonapi.relationMany = function(item, baseCollection, attribute, list, relatedCollection, included) {
+  jsonapi.relationMany = function(item, baseCollection, attribute, list, relatedCollection, included, options) {
     var data = {
       data: item[attribute].map((item) => {
 	// .data only contains shallow objects
@@ -148,7 +155,7 @@ module.exports = function(waterline) {
 	// If the relation has been populated, the objects are available in .included
 	if('object' === typeof item) {
 	  if(!included[relatedCollection.identity]) included[relatedCollection.identity] = {}
-	  included[relatedCollection.identity][item.id] = jsonapi.itemFull(item, relatedCollection, included)
+	  included[relatedCollection.identity][item.id] = jsonapi.itemFull(item, relatedCollection, included, options)
 	}
 	return data
       })
@@ -161,11 +168,12 @@ module.exports = function(waterline) {
     return data
   }
 
-  jsonapi.collection = function(list, collection, included) {
-    if(!included) included = {}
+  jsonapi.collection = function(list, collection, options) {
+    options = prepareOptions(options)
+    var included = {}
     if(!collection.identity) collection = waterline.collections[collection]
     var data = {
-      data: list.map((item)=>jsonapi.itemFull(item, collection, included))
+      data: list.map((item)=>jsonapi.itemFull(item, collection, included, options))
     }
     if(Object.keys(included).length) {
       data.included = jsonapi.included(included)
@@ -184,5 +192,16 @@ module.exports = function(waterline) {
     }
     return rendered
   }
+
+  function prepareOptions(options) {
+    options = options || {}
+    if(options.fields) {
+      for(var collection in options.fields) {
+	options.fields[collection] = options.fields[collection].split(',')
+      }
+    }
+    return options
+  }
+
   return jsonapi
 }
